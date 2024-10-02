@@ -25,7 +25,12 @@ SECRET_KEY = 'django-insecure-ng=gx)f%e0@!lg^%-8xy#=^_3%kv@7a7uqmyorm+e5$gz0b+14
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    'dynamic-graph-generator.onrender.com',
+    'localhost',  # if you're also testing locally
+    '127.0.0.1',  # if you're also testing locally
+]
+
 
 
 # Application definition
