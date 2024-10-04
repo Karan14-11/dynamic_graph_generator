@@ -29,6 +29,7 @@ ALLOWED_HOSTS = [
     'dynamic-graph-generator.onrender.com',
     'localhost',  # if you're also testing locally
     '127.0.0.1',  # if you're also testing locally
+    'dynamic-graph.onrender.com'
 ]
 
 
