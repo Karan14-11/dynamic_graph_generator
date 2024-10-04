@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+*.pyo
+
+# Ignore local virtual environments
+venv/
+env/
+
+# Ignore Django's SQLite database file if you use one locally
+db.sqlite3
+
+# Ignore build artifacts
+build/
