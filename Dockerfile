@@ -6,10 +6,9 @@ RUN apt-get update && \
     apt-get install -y libmuparser-dev libomp-dev
 
 # Set the working directory inside the container
-WORKDIR /app
+WORKDIR .
 
 # Copy the entire project into the container
-COPY . /app
 
 # Ensure the main executable is in the right place
 RUN chmod +x /app/main
