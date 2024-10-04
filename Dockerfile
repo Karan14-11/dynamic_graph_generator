@@ -18,6 +18,8 @@ RUN chmod +x /app/main
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
+RUN python manage.py migrate
+
 # Expose port 8000 for Django
 EXPOSE 8000
 
