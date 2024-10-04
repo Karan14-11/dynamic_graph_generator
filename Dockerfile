@@ -12,7 +12,8 @@ WORKDIR /app
 COPY . /app
 
 # Copy the already compiled C++ executable (assumed to be in the root)
-COPY main /usr/local/bin/  # Adjust if your executable is named differently
+COPY ./main /usr/local/bin/  # Adjust if your executable is named differently
+RUN chmod +x /usr/local/bin/main
 
 # Install Python dependencies
 RUN pip install --upgrade pip
