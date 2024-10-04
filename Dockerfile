@@ -11,7 +11,7 @@ WORKDIR .
 # Copy the entire project into the container
 
 # Ensure the main executable is in the right place
-RUN chmod +x /app/main
+RUN chmod +x main
 
 # Install Python dependencies
 RUN pip install --upgrade pip
