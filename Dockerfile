@@ -6,13 +6,10 @@ RUN apt-get update && \
     apt-get install -y libmuparser-dev libomp-dev cmake pkg-config build-essential
 
 # Set the working directory in the container
-WORKDIR /app
 
-# Copy the project files into the container
-COPY . /app
+# Copy the project files into the 
 
 # Create a build directory for the C++ project and build the C++ executable
-RUN mkdir -p build && cd build && cmake .. && make
 
 # Install Python dependencies
 RUN pip install --upgrade pip
