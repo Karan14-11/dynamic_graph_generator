@@ -1,8 +1,8 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
-from .forms import RegisterForm, LoginForm
-from .models import CommandLog
+from .forms import RegisterForm
+# from .models import CommandLog
 import os
 import json
 import shutil
@@ -20,54 +20,49 @@ def register(request):
         form = RegisterForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('login')
+            return redirect('home')
+        else:
+            print(form.errors)
     else:
         form = RegisterForm()
     return render(request, 'register.html', {'form': form})
 
-def user_login(request):
-    if request.method == 'POST':
-        form = LoginForm(data=request.POST)
-        if form.is_valid():
-            user = form.get_user()
-            login(request, user)
-            return redirect('home')
-    else:
-        form = LoginForm()
-    return render(request, 'login.html', {'form': form})
+# def user_login(request):
+#     if request.method == 'POST':
+#         form = LoginForm(data=request.POST)
+#         if form.is_valid():
+#             user = form.get_user()
+#             login(request, user)
+#             return redirect('home')
+#     else:
+#         form = LoginForm()
+#     return render(request, 'login.html', {'form': form})
 
-@login_required
+# @login_required
 def home(request):
     graphs_directory = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'sample_graphs')
     graph_files = os.listdir(graphs_directory)
     context = {'graph_files': graph_files}
     if request.method == 'POST':
-        update_nature = request.POST['update-nature']
-        batch_size = request.POST['batch-size']
-        batch_size_ratio = request.POST['batch-size-ratio']
-        edge_insertions = request.POST['edge-insertions']
-        edge_deletions = request.POST['edge-deletions']
-        allow_duplicate_edges = 'checked' if 'allow-duplicate-edges' in request.POST else 'unchecked'
-        # vertex_insertions = request.POST['vertex-insertions']
-        # vertex_deletions = request.POST['vertex-deletions']
-        vertex_growth_rate = request.POST['vertex-growth-rate']
-        allow_duplicate_vertices = 'checked' if 'allow-duplicate-vertices' in request.POST else 'unchecked'
-        min_degree = request.POST['min-degree']
-        max_degree = request.POST['max-degree']
-        min_diameter = request.POST['min-diameter']
-        max_diameter = request.POST['max-diameter']
-        min_scc = request.POST['min-scc']
-        max_scc = request.POST['max-scc']
-        preserve_degree_distribution = 'checked' if 'preserve-degree-distribution' in request.POST else 'unchecked'
-        preserve_communities = 'checked' if 'preserve-communities' in request.POST else 'unchecked'
-        multi_batch = request.POST['multi-batch']
-        seed = request.POST['seed']
-        output_format = request.POST['output-format']
-        input_format = request.POST['input-format']
-        input_transform = request.POST['input-transform']
-        probability_distribution = '"' + request.POST['probability-distribution'] + '"'
-        input_file_name = request.POST['graph-file']
-        graph_type = request.POST['graph-type']
+        update_nature = request.POST.get('update-nature', '')
+        batch_size = request.POST.get('batch-size', '')
+        batch_size_ratio = request.POST.get('batch-size-ratio', '')
+        edge_insertions = request.POST.get('edge-insertions', '')
+        edge_deletions = request.POST.get('edge-deletions', '')
+        min_degree = request.POST.get('min-degree', '')
+        max_degree = request.POST.get('max-degree', '')
+        min_diameter = request.POST.get('min-diameter', '')
+        max_diameter = request.POST.get('max-diameter', '')
+        min_scc = request.POST.get('min-scc', '')
+        max_scc = request.POST.get('max-scc', '')
+        multi_batch = request.POST.get('multi-batch', '')
+        seed = request.POST.get('seed', '')
+        output_format = request.POST.get('output-format', '')
+        input_format = request.POST.get('input-format', '')
+        input_transform = request.POST.get('input-transform', '')
+        probability_distribution = '"' + request.POST.get('probability-distribution', '') + '"'
+        input_file_name = request.POST.get('graph-file', '')
+        graph_type = request.POST.get('graph-type', '')
 
         properties_directory = os.path.join(settings.MEDIA_ROOT, 'properties')
         if os.path.exists(properties_directory):
@@ -115,9 +110,6 @@ def home(request):
             '--batch-size-ratio', batch_size_ratio,
             '--edge-insertions', edge_insertions,
             '--edge-deletions', edge_deletions,
-            # '--vertex-insertions', vertex_insertions,
-            # '--vertex-deletions', vertex_deletions,
-            '--vertex-growth-rate', vertex_growth_rate,
             '--min-degree', min_degree,
             '--max-degree', max_degree,
             '--min-diameter', min_diameter,
@@ -144,26 +136,20 @@ def home(request):
                 clean_args.append(args[i])
                 clean_args.append(args[i + 1])
 
-        if allow_duplicate_edges == 'checked':
-            clean_args.append('--allow-duplicate-edges')
-        if allow_duplicate_vertices == 'checked':
-            clean_args.append('--allow-duplicate-vertices')
-        if preserve_degree_distribution == 'checked':
-            clean_args.append('--preserve-degree-distribution')
-        if preserve_communities == 'checked':
-            clean_args.append('--preserve-communities')
+        # Store graph_type in the session
+        request.session['graph_type'] = graph_type
 
         command = " ".join(clean_args)
         print("command: ", command)
-        command_log = CommandLog(username=request.user.username, command=command)
-        command_log.save()
+        # command_log = CommandLog(username=request.user.username, command=command)
+        # command_log.save()
         subprocess.run(command, shell=True)
         context['output_file'] = True
         return redirect('properties')
     context['output_file'] = False
     return render(request, 'home.html', context)
 
-@login_required
+# @login_required
 def properties(request):
     properties_directory = os.path.join(settings.MEDIA_ROOT, 'properties')
     graphs = []
@@ -195,15 +181,15 @@ def properties(request):
         
         # Add image path to graph properties
         graph_properties['adjacency_matrix_image'] = os.path.join(settings.MEDIA_URL, 'adjacency_matrices', img_filename)
-
+        graph_properties["KLD"] = max(graph_properties.get('KLD', 0), 0)
         # Add SVD statistics image path to graph properties
         svd_filename = f"svd_statistics_{file.name.split(os.sep)[-1].split('_')[-1]}.png"
         graph_properties['svd_statistics'] = os.path.join(settings.MEDIA_URL, 'properties/svd', svd_filename)
         graphs.append([int(file.name.split(os.sep)[-1].split('_')[-1]), graph_properties])
-    context = {'graphs': sorted(graphs)}
+    context = {'graphs': sorted(graphs), 'graph_type': request.session['graph_type']}
     return render(request, 'properties.html', context)
 
-@login_required
+# @login_required
 def download(request):
     output_directory = os.path.join(settings.MEDIA_ROOT, 'output')
     zip_file_path = output_directory + '.zip'
@@ -214,34 +200,34 @@ def download(request):
                 zipf.write(file_path, os.path.relpath(file_path, output_directory))
     return HttpResponse(open(zip_file_path, 'rb'), content_type='application/zip')
 
-@login_required
-def user_logout(request):
-    if os.path.exists(settings.MEDIA_ROOT):
-        output_directory = os.path.join(settings.MEDIA_ROOT, 'output')
-        if os.path.exists(output_directory):
-            shutil.rmtree(output_directory)
-        os.makedirs(output_directory)
+# @login_required
+# def user_logout(request):
+#     if os.path.exists(settings.MEDIA_ROOT):
+#         output_directory = os.path.join(settings.MEDIA_ROOT, 'output')
+#         if os.path.exists(output_directory):
+#             shutil.rmtree(output_directory)
+#         os.makedirs(output_directory)
 
-        if os.path.exists(output_directory + '.zip'):
-            os.remove(output_directory + '.zip')
+#         if os.path.exists(output_directory + '.zip'):
+#             os.remove(output_directory + '.zip')
 
-        uploads_directory = os.path.join(settings.MEDIA_ROOT, 'uploads')
-        if os.path.exists(uploads_directory):
-            shutil.rmtree(uploads_directory)
-        os.makedirs(uploads_directory)
+#         uploads_directory = os.path.join(settings.MEDIA_ROOT, 'uploads')
+#         if os.path.exists(uploads_directory):
+#             shutil.rmtree(uploads_directory)
+#         os.makedirs(uploads_directory)
 
-        properties_directory = os.path.join(settings.MEDIA_ROOT, 'properties')
-        if os.path.exists(properties_directory):
-            shutil.rmtree(properties_directory)
-        os.makedirs(properties_directory)
+#         properties_directory = os.path.join(settings.MEDIA_ROOT, 'properties')
+#         if os.path.exists(properties_directory):
+#             shutil.rmtree(properties_directory)
+#         os.makedirs(properties_directory)
 
-        adjacencies_directory = os.path.join(settings.MEDIA_ROOT, 'adjacency_matrices')
-        if os.path.exists(adjacencies_directory):
-            shutil.rmtree(adjacencies_directory)
-        os.makedirs(adjacencies_directory)
+#         adjacencies_directory = os.path.join(settings.MEDIA_ROOT, 'adjacency_matrices')
+#         if os.path.exists(adjacencies_directory):
+#             shutil.rmtree(adjacencies_directory)
+#         os.makedirs(adjacencies_directory)
 
-    logout(request)
-    return redirect('login')
+#     logout(request)
+#     return redirect('login')
 
-def index(request):
-    return render(request, 'index.html')
+def instructions(request):
+    return render(request, 'instructions.html')
