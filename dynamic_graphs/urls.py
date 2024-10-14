@@ -27,7 +27,7 @@ urlpatterns = [
     path('download/', views.download, name='download'),
     path('properties/', views.properties, name='properties'),
     path('instructions/', views.instructions, name='instructions'),
-    path('generator/', views.home, name='home'),
+    path('home/', views.home, name='home'),
 ]
 
 if settings.DEBUG:
